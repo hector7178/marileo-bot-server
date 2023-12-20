@@ -431,7 +431,7 @@ app.post("/sendmessage", async (req, res) => {
 });
 
 app.get("/", express.json(), async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+  res.setHeader('Access-Control-Allow-Origin', 'https://marileo-bot.vercel.app/')
 
   const imagePath = path.resolve(__dirname, 'public', 'hola.png');
 
