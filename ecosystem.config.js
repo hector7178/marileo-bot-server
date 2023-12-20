@@ -1,22 +1,20 @@
 module.exports = {
   apps : [{
-    script: 'index.js',
-    watch: '.'
-  }, {
-    script: './service-worker/',
-    watch: ['./service-worker']
+    script: 'npm start'
   }],
 
   deploy : {
     production : {
-      user : 'SSH_USERNAME',
-      host : 'SSH_HOSTMACHINE',
-      ref  : 'origin/master',
-      repo : 'GIT_REPOSITORY',
-      path : 'DESTINATION_PATH',
+      key: "marileo.pem",
+      user : 'ubuntu',
+      host : '18.231.157.113',
+      ref  : 'origin/main',
+      repo : 'https://github.com/hector7178/marileo-bot-server.git',
+      path : '/home/ubuntu',
       'pre-deploy-local': '',
-      'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env production',
-      'pre-setup': ''
+      'post-deploy' : 'source ~/nvm/nvm.sh && npm install && pm2 reload ecosystem.config.js --env production',
+      'pre-setup': '',
+      'ssh-options':'ForwardAgent=yes'
     }
   }
 };
