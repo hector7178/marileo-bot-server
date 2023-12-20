@@ -1,0 +1,15 @@
+{
+    "devCommand": "npm start",
+    
+    "buildCommand": "node index.js",
+      
+    "builds":[
+        {
+            "src":"index.js",
+            "use":"@vercel/node"
+           
+        }
+    ]
+  
+      
+}
