@@ -432,7 +432,8 @@ app.post("/sendmessage", async (req, res) => {
 
 app.get("/", express.json(), async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
-
+  res.header('Referrer-Policy', 'no-referrer')
+  
   const imagePath = path.resolve(__dirname, 'public', 'hola.png');
 
 
