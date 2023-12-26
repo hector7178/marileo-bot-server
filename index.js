@@ -16,12 +16,12 @@ const {
   msgRetryCounterMap,
   ButtonText
 } = require("@whiskeysockets/baileys");
+const fs = require('fs').promises
 
 const log = (pino = require("pino"));
 const { session } = { session: "session_auth_info" };
 const { Boom } = require("@hapi/boom");
 const path = require("path");
-const fs = require("fs");
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
@@ -107,16 +107,14 @@ async function connectToWhatsApp() {
       console.log("conexión abierta");
       return;
     }
-  });
+  })
 
   
   
  
 
-  sock.ev.on("messages.upsert", async ({ messages, type }) => {
+sock.ev.on("messages.upsert", async ({ messages, type }) => {
 
-
-console.log('msj',messages)
     try {
       if (type === "notify") {
         if (!messages[0]?.key.fromMe) {
@@ -140,7 +138,7 @@ console.log('msj',messages)
           }
          
 
-          if (compareMessage === plbActivacion.saludo) {
+          if (compareMessage.includes(plbActivacion.saludo)) {
 
           
 
@@ -240,8 +238,8 @@ console.log('msj',messages)
                      "Ejemplo \n" +
                      "E1,E3,E5,..."
                  })
-               })
-            })
+               }).catch((err)=>console.log('error',err))
+            }).catch((err)=>console.log('error',err))
             if(chatfind) {
               chatfind.mensajes?.push({ user: 'admin', mensaje: "Mensaje de ofertas enviado" })
               chatfind.status=true;
@@ -271,7 +269,7 @@ console.log('msj',messages)
                 
               });
               
-              if(arrped.length() > 0){
+              if(arrped.length > 0){
                 const valorTotalMap = arrped.map((e) => {
                   return e.precio
                 });
@@ -300,7 +298,7 @@ console.log('msj',messages)
                     }
                     chatfind.status=false
                     await chatfind.save()
-                  })
+                  }).catch((err)=>console.log('error',err))
                  
                 
                 }
@@ -355,7 +353,7 @@ console.log('msj',messages)
     }
   });
 
-  sock.ev.on("creds.update", saveCreds);
+sock.ev.on("creds.update", saveCreds);
 }
 
 
