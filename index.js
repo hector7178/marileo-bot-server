@@ -16,12 +16,12 @@ const {
   msgRetryCounterMap,
   ButtonText
 } = require("@whiskeysockets/baileys");
-const fs = require('fs').promises
 
 const log = (pino = require("pino"));
 const { session } = { session: "session_auth_info" };
 const { Boom } = require("@hapi/boom");
 const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
@@ -78,10 +78,10 @@ async function connectToWhatsApp() {
         sock.logout();
       } else if (reason === DisconnectReason.connectionClosed) {
         console.log("Conexión cerrada, reconectando....");
-        connectToWhatsApp();
+        connectToWhatsApp().catch((err) => console.log("unexpected error: " + err));;
       } else if (reason === DisconnectReason.connectionLost) {
         console.log("Conexión perdida del servidor, reconectando...");
-        connectToWhatsApp();
+        connectToWhatsApp().catch((err) => console.log("unexpected error: " + err));;
       } else if (reason === DisconnectReason.connectionReplaced) {
         console.log(
           "Conexión reemplazada, otra nueva sesión abierta, cierre la sesión actual primero"
@@ -94,10 +94,10 @@ async function connectToWhatsApp() {
         sock.logout();
       } else if (reason === DisconnectReason.restartRequired) {
         console.log("Se requiere reinicio, reiniciando...");
-        connectToWhatsApp();
+        connectToWhatsApp().catch((err) => console.log("unexpected error: " + err));;
       } else if (reason === DisconnectReason.timedOut) {
         console.log("Se agotó el tiempo de conexión, conectando...");
-        connectToWhatsApp();
+        connectToWhatsApp().catch((err) => console.log("unexpected error: " + err));;
       } else {
         sock.end(
           `Motivo de desconexión desconocido: ${reason}|${lastDisconnect.error}`
@@ -107,14 +107,16 @@ async function connectToWhatsApp() {
       console.log("conexión abierta");
       return;
     }
-  })
+  });
 
   
   
  
 
-sock.ev.on("messages.upsert", async ({ messages, type }) => {
+  sock.ev.on("messages.upsert", async ({ messages, type }) => {
 
+
+console.log('msj',messages)
     try {
       if (type === "notify") {
         if (!messages[0]?.key.fromMe) {
@@ -138,7 +140,7 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
           }
          
 
-          if (compareMessage.includes(plbActivacion.saludo)) {
+          if (compareMessage === plbActivacion.saludo) {
 
           
 
@@ -238,8 +240,8 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
                      "Ejemplo \n" +
                      "E1,E3,E5,..."
                  })
-               }).catch((err)=>console.log('error',err))
-            }).catch((err)=>console.log('error',err))
+               }).catch((err) => console.log("unexpected error: " + err))
+            }).catch((err) => console.log("unexpected error: " + err))
             if(chatfind) {
               chatfind.mensajes?.push({ user: 'admin', mensaje: "Mensaje de ofertas enviado" })
               chatfind.status=true;
@@ -298,7 +300,7 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
                     }
                     chatfind.status=false
                     await chatfind.save()
-                  }).catch((err)=>console.log('error',err))
+                  }).catch((err) => console.log("unexpected error: " + err));
                  
                 
                 }
@@ -353,7 +355,7 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
     }
   });
 
-sock.ev.on("creds.update", saveCreds);
+  sock.ev.on("creds.update", saveCreds);
 }
 
 
@@ -428,7 +430,7 @@ app.post("/sendmessage", async (req, res) => {
   }
 });
 
-app.get("/", express.json(), async (req, res) => {
+app.get("/", async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.header('Referrer-Policy', 'no-referrer')
   
