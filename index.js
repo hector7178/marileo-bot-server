@@ -140,7 +140,7 @@ console.log('msj',messages)
           }
          
 
-          if (compareMessage === plbActivacion.saludo) {
+          if (compareMessage.includes(plbActivacion.saludo)) {
 
           
 
