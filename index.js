@@ -113,15 +113,15 @@ async function connectToWhatsApp() {
   
  
 
-  sock.ev.on("messages.upsert", async ({ messages, type }) => {
+sock.ev.on("messages.upsert", async ({ messages, type }) => {
 
 
-console.log('msj',messages)
+console.log('msj',messages,'type',type,'mesage', messages[0]?.message?.extendedTextMessage?.text )
     try {
       if (type === "notify") {
         if (!messages[0]?.key.fromMe) {
 
-          const captureMessage = messages[0]?.message?.conversation;
+          const captureMessage = messages[0]?.message?.conversation ? messages[0]?.message?.conversation : messages[0]?.message?.extendedTextMessage?.text;
           console.log('captureMessage',captureMessage)
 
           const numberWa = messages[0]?.key?.remoteJid;
