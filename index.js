@@ -20,6 +20,7 @@ const {
 const log = (pino = require("pino"));
 const { session } = { session: "session_auth_info" };
 const { Boom } = require("@hapi/boom");
+const axios = require('axios');
 const path = require("path");
 const fs = require("fs");
 const express = require("express");
@@ -31,6 +32,7 @@ const conn = require('./db.js');
 const Activacion = require('./models/activacionPalabras.js');
 const Chat = require('./models/chatVentas.js');
 const respuestas = require('./models/respuestas.js');
+const cron = require('node-cron');
 
 conn()
 app.use(
@@ -46,14 +48,78 @@ const server = require("http").createServer(app);
 const port = process.env.PORT || 5000;
 const qrcode = require("qrcode");
 
-
+let reset=true;
 
 app.use(express.static('public'))
 
 let sock;
 let qrDinamic = 'any';
 
+const isConnected = () => {
+  return sock?.user ? true : false;
+};
 
+cron.schedule('00 19 * * *', () => {
+  axios.get('http://localhost:8000/api/accounts').then(function (response) {
+    
+    const data=response.data["suscription"].filter((data)=>{
+      return data.last_days < 5 
+    })
+
+    let numberWA;
+
+    data.forEach(element => {
+      
+        axios({
+          method: 'get',
+          url: `http://localhost:8000/api/get-expiration-message/${element.id}`,
+          responseType: 'json'
+        }).then(function (responsed) {
+          
+        const dataCus=response.data["customer"].filter((data)=>{
+          return data.id===element.customer_id
+        });
+
+        dataCus.forEach(async elem=>{
+          try {
+            if (elem.phone) {
+              numberWA = elem.phone + "@s.whatsapp.net";
+              console.log('numberWA ',numberWA )
+
+              if (isConnected()) {
+                const exist = await sock.onWhatsApp(numberWA);
+
+                  if (exist) {
+                   await sock.sendMessage(numberWA , {
+                      text: responsed.data.message
+                    }).then().catch(err=>console.log(err));
+                  }
+              } else {
+                console.log('errooooor')
+              }
+            }
+          } catch (err) {
+            console.log('errooooor mas grande')
+          }
+        })
+
+        });
+        
+        
+
+    });
+
+  })
+  .catch(function (error) {
+    // handle error
+    console.log(error);
+  })
+  
+
+}, {
+  scheduled: true,
+  timezone: "America/Caracas"
+});
 
 
 async function connectToWhatsApp() {
@@ -66,7 +132,7 @@ async function connectToWhatsApp() {
   });
 
 
-  sock.ev.on("connection.update", async (update) => {
+sock.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect, qr } = update;
     qrDinamic = qr;
     if (connection === "close") {
@@ -107,12 +173,9 @@ async function connectToWhatsApp() {
       console.log("conexión abierta");
       return;
     }
-  });
+});
 
   
-  
- 
-
 sock.ev.on("messages.upsert", async ({ messages, type }) => {
 
 
@@ -353,78 +416,68 @@ console.log('msj',messages,'type',type,'mesage', messages[0]?.message?.extendedT
     catch (error) {
       console.log("error ", error);
     }
-  });
+});
 
-  sock.ev.on("creds.update", saveCreds);
+sock.ev.on("creds.update", saveCreds);
+
 }
 
-
-
-const isConnected = () => {
-  return sock?.user ? true : false;
-};
 
 app.post("/sendmessage", async (req, res) => {
 
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.header('Content-Type', 'application/json')
-
-  const tempMessage = req.body.mensaje;
-  const number = req.body.number;
+ console.log(res.body)
+  const subscriptionId = req.body.subscription;
+  const number = req.body.phone;
 
   let numberWA;
   try {
-    if (!number) {
-      res.status(500).json({
-        status: false,
-        response: "El numero no existe",
-      });
-    } else {
-      numberWA = number + "@s.whatsapp.net";
-
-      if (isConnected()) {
-
-
-        const exist = await sock.onWhatsApp(numberWA);
-
-        if (exist?.jid || (exist && exist[0]?.jid)) {
-          sock
-            .sendMessage(exist.jid || exist[0].jid, {
-              text: tempMessage,
-            })
-            .then(async (result) => {
-              const chatfind = await Chat.findOne({ id_chat: number + "@s.whatsapp.net" })
-
-              if (chatfind) {
-                chatfind.mensajes?.push({ user: 'admin', mensaje: tempMessage })
-                await chatfind.save()
-
-              } else {
-
-                const dat = new Chat({ id_chat: number + "@s.whatsapp.net", mensajes: [{ user: number, mensaje: tempMessage }] })
-                await dat.save()
-              }
-
-              res.status(200).json({
-                status: true,
-                response: result,
-              });
-            })
-            .catch((err) => {
-              res.status(500).json({
-                status: false,
-                response: err,
-              });
-            });
-        }
-      } else {
+    axios({
+      method: 'get',
+      url: `http://localhost:8000/api/get-data-message/${subscriptionId}`,
+      responseType: 'json'
+    }).then(async function (responsed) {
+      if (!number) {
         res.status(500).json({
           status: false,
-          response: "Aun no estas conectado",
+          response: "El numero no existe",
         });
+      } else {
+        numberWA = number + "@s.whatsapp.net";
+  
+        if (isConnected()) {
+  
+  
+          const exist = await sock.onWhatsApp(numberWA);
+  
+          if (exist) {
+            await sock.sendMessage(numberWA , {
+                text:responsed.data.message
+              }).then(async (result) => {
+                  res.status(200).json({
+                  status: true,
+                  response: 'mensaje enviado',
+                });
+              })
+              .catch((err) => {
+                res.status(500).json({
+                  status: false,
+                  response: 'mensaje no enviado',
+                });
+              });
+          }
+        } else {
+          res.status(500).json({
+            status: false,
+            response: "Aun no estas conectado",
+          });
+        }
       }
-    }
+
+    })
+    
   } catch (err) {
     res.status(500).send(err);
   }
@@ -478,6 +531,21 @@ app.get('/chatlist', async (req, res) => {
   res.json(respuesta)
 
 })
+app.get('/logout', async (req, res) => {  
+  const FOLDER_TO_REMOVE = './session_auth_info/'
+
+  fs.promises.rmdir(FOLDER_TO_REMOVE, { recursive: true })
+  .then(() => {
+    console.log('"articles" folder removed')
+    reset=false
+  })
+  .catch(err => {
+    console.error('Something wrong happened removing "articles" folder', err)
+  })
+ sock.logout()
+
+ res.json({logOut:true})
+})
 
 app.get('/respuestas', async (req, res) => {
 
@@ -512,8 +580,11 @@ app.post("/actualizar/respuestas", async (req, res) => {
   console.log('data-server',respuestasfind )
   res.status(200).json({"actualizar":"listo"})
 })
+setTimeout(()=>{
+reset=true
+},100)
 
-connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
+reset && connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
 server.listen(port, () => {
   console.log("Server Run Port : " + port);
 });
