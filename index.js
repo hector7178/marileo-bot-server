@@ -60,7 +60,7 @@ const isConnected = () => {
 };
 
 cron.schedule('00 19 * * *', () => {
-  axios.get('http://localhost:8000/api/accounts').then(function (response) {
+  axios.get('https://gestioncuentas.shop/api/accounts').then(function (response) {
     
     const data=response.data["suscription"].filter((data)=>{
       return data.last_days < 5 
@@ -72,7 +72,7 @@ cron.schedule('00 19 * * *', () => {
       
         axios({
           method: 'get',
-          url: `http://localhost:8000/api/get-expiration-message/${element.id}`,
+          url: `https://gestioncuentas.shop/api/get-expiration-message/${element.id}`,
           responseType: 'json'
         }).then(function (responsed) {
           
@@ -436,7 +436,7 @@ app.post("/sendmessage", async (req, res) => {
   try {
     axios({
       method: 'get',
-      url: `http://localhost:8000/api/get-data-message/${subscriptionId}`,
+      url: `https://gestioncuentas.shop/api/get-data-message/${subscriptionId}`,
       responseType: 'json'
     }).then(async function (responsed) {
       if (!number) {
