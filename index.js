@@ -536,16 +536,16 @@ app.get('/logout', async (req, res) => {
 
   fs.promises.rmdir(FOLDER_TO_REMOVE, { recursive: true })
   .then(() => {
-    console.log('"articles" folder removed')
-    reset=false
+    console.log('"articles" folder removed');
+    
+    sock.logout();
+    connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
+
   })
   .catch(err => {
     console.error('Something wrong happened removing "articles" folder', err)
   })
- sock.logout();
- connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
-
-
+ 
  res.json({logOut:true})
 })
 
