@@ -59,11 +59,11 @@ const isConnected = () => {
   return sock?.user ? true : false;
 };
 
-cron.schedule('00 19 * * *', () => {
+cron.schedule('45 12 * * *', () => {
   axios.get('https://gestioncuentas.shop/api/accounts').then(function (response) {
     
     const data=response.data["suscription"].filter((data)=>{
-      return data.last_days < 5 
+      return data.last_days < response.data.expSus
     })
 
     let numberWA;
@@ -105,9 +105,32 @@ cron.schedule('00 19 * * *', () => {
 
         });
         
-        
-
     });
+
+    const dataAcc=response.data["accounts"].filter((data)=>{
+      return data.last_days < response.data.expAcc
+    })
+    dataAcc.forEach(async element => {
+        try {
+          
+
+            if (isConnected()) {
+              const exist = await sock.onWhatsApp(sock?.user.id);
+
+                if (exist) {
+                 await sock.sendMessage(sock?.user.id, {
+                    text: `AVISO ADMIN:\n Su *cuenta:${element.email}* esta por caducar en *${element.last_days} dias*, renovar lo antes posible`
+                  }).then().catch(err=>console.log(err));
+                }
+            } else {
+              console.log('errooooor')
+            }
+          
+        } catch (err) {
+          console.log('errooooor mas grande')
+        }
+    })
+
 
   })
   .catch(function (error) {
