@@ -542,7 +542,9 @@ app.get('/logout', async (req, res) => {
   .catch(err => {
     console.error('Something wrong happened removing "articles" folder', err)
   })
- sock.logout()
+ sock.logout();
+ connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
+
 
  res.json({logOut:true})
 })
@@ -580,11 +582,9 @@ app.post("/actualizar/respuestas", async (req, res) => {
   console.log('data-server',respuestasfind )
   res.status(200).json({"actualizar":"listo"})
 })
-setTimeout(()=>{
-reset=true
-},100)
 
-reset && connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
+
+connectToWhatsApp().catch((err) => console.log("unexpected error: " + err)); // catch any errors
 server.listen(port, () => {
   console.log("Server Run Port : " + port);
 });
