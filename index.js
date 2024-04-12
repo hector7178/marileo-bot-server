@@ -59,7 +59,7 @@ const isConnected = () => {
   return sock?.user ? true : false;
 };
 
-cron.schedule('00 19 * * *', () => {
+cron.schedule('03 10 * * *', () => {
   axios.get('https://gestioncuentas.shop/api/accounts').then(function (response) {
     
     const data=response.data["suscription"].filter((data)=>{
@@ -68,42 +68,28 @@ cron.schedule('00 19 * * *', () => {
 
     let numberWA;
 
-    data.forEach(element => {
-      
-        axios({
-          method: 'get',
-          url: `https://gestioncuentas.shop/api/get-expiration-message/${element.id}`,
-          responseType: 'json'
-        }).then(function (responsed) {
-          
-        const dataCus=response.data["customer"].filter((data)=>{
-          return data.id===element.customer_id
-        });
+    data.forEach(async element => {
+        try {
+          if (element?.customer[0]?.phone) {
+            numberWA = element.customer[0].phone + "@s.whatsapp.net";
+            console.log('numberWA ',numberWA )
 
-        dataCus.forEach(async elem=>{
-          try {
-            if (elem.phone) {
-              numberWA = elem.phone + "@s.whatsapp.net";
-              console.log('numberWA ',numberWA )
+            if (isConnected()) {
+              const exist = await sock.onWhatsApp(numberWA);
 
-              if (isConnected()) {
-                const exist = await sock.onWhatsApp(numberWA);
-
-                  if (exist) {
-                   await sock.sendMessage(numberWA , {
-                      text: responsed.data.message
-                    }).then().catch(err=>console.log(err));
-                  }
-              } else {
-                console.log('errooooor')
-              }
+                if (exist) {
+                 await sock.sendMessage(numberWA , {
+                    text: element?.MensajeExpiracion
+                  }).then().catch(err=>console.log(err));
+                }
+            } else {
+              console.log('errooooor')
             }
-          } catch (err) {
-            console.log('errooooor mas grande')
           }
-        })
-
-        });
+        } catch (err) {
+          console.log('errooooor mas grande')
+        }
+    
         
     });
 
@@ -451,7 +437,7 @@ app.post("/sendmessage", async (req, res) => {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.header('Content-Type', 'application/json')
- console.log(res.body)
+ console.log(req.body)
   const subscriptionId = req.body.subscription;
   const number = req.body.phone;
 
@@ -459,9 +445,10 @@ app.post("/sendmessage", async (req, res) => {
   try {
     axios({
       method: 'get',
-      url: `https://gestioncuentas.shop/api/get-data-message/${subscriptionId}`,
+      url: `http://gestioncuentas.shop/api/accounts`,
       responseType: 'json'
     }).then(async function (responsed) {
+      console.log('data-mensaje')
       if (!number) {
         res.status(500).json({
           status: false,
@@ -477,7 +464,7 @@ app.post("/sendmessage", async (req, res) => {
   
           if (exist) {
             await sock.sendMessage(numberWA , {
-                text:responsed.data.message
+                text:responsed.data?.suscription.find((data)=>data?.subscription?.id===subscriptionId)?.MensajeData
               }).then(async (result) => {
                   res.status(200).json({
                   status: true,
