@@ -464,7 +464,7 @@ app.post("/sendmessage", async (req, res) => {
   
           if (exist) {
             await sock.sendMessage(numberWA , {
-                text:responsed.data?.suscription.find((data)=>data?.subscription?.id===subscriptionId)?.MensajeData
+                text:responsed.data?.suscription.find((data)=>data?.subscription?.id===`${subscriptionId}`)?.MensajeData
               }).then(async (result) => {
                   res.status(200).json({
                   status: true,
