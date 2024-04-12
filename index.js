@@ -105,7 +105,7 @@ cron.schedule('00 11 * * *', () => {
 
                 if (exist) {
                  await sock.sendMessage(sock?.user.id, {
-                    text: `AVISO ADMIN:\n Su *cuenta:${element.email}* esta por caducar en *${element.last_days} dias*, renovar lo antes posible`
+                    text: `AVISO ADMIN:\n Su *cuenta:${element?.accounts?.email}* esta por caducar en *${element.last_days} dias*, renovar lo antes posible`
                   }).then().catch(err=>console.log(err));
                 }
             } else {
