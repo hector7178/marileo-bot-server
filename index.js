@@ -448,7 +448,7 @@ app.post("/sendmessage", async (req, res) => {
       url: `http://gestioncuentas.shop/api/accounts`,
       responseType: 'json'
     }).then(async function (responsed) {
-      console.log('data-mensaje')
+      console.log('data-mensaje', responsed.data?.suscription?.find((data)=>data?.subscription?.id===`${subscriptionId}`)?.MensajeData)
       if (!number) {
         res.status(500).json({
           status: false,
@@ -464,7 +464,7 @@ app.post("/sendmessage", async (req, res) => {
   
           if (exist) {
             await sock.sendMessage(numberWA , {
-                text:responsed.data?.suscription.find((data)=>data?.subscription?.id===`${subscriptionId}`)?.MensajeData
+                text:`${responsed.data?.suscription?.find((data)=>data?.subscription?.id===`${subscriptionId}`)?.MensajeData}`
               }).then(async (result) => {
                   res.status(200).json({
                   status: true,
