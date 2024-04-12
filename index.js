@@ -59,7 +59,7 @@ const isConnected = () => {
   return sock?.user ? true : false;
 };
 
-cron.schedule('50 15 * * *', () => {
+cron.schedule('30 18 * * *', () => {
   axios.get('https://gestioncuentas.shop/api/accounts').then(function (response) {
     
     const data=response.data["suscription"].filter((data)=>{
@@ -105,7 +105,7 @@ cron.schedule('50 15 * * *', () => {
 
                 if (exist) {
                  await sock.sendMessage(sock?.user.id, {
-                    text: `AVISO ADMIN:\n Su *cuenta:${element?.accounts?.email}* esta por caducar en *${element.last_days} dias*, renovar lo antes posible`
+                    text: `AVISO ADMIN:\n Su *cuenta:${element?.accounts[0]?.email}* esta por caducar en *${element.last_days} dias*, renovar lo antes posible`
                   }).then().catch(err=>console.log(err));
                 }
             } else {
