@@ -59,39 +59,32 @@ const isConnected = () => {
   return sock?.user ? true : false;
 };
 
-cron.schedule('30 21 * * *', () => {
+cron.schedule('00 12 * * *', () => {
   axios.get('https://gestioncuentas.shop/api/accounts').then(function (response) {
     
     const data=response.data["suscription"].filter((data)=>{
       return data.last_days < response.data.expSus
     })
 
-    let numberWA;
-
-    // data.forEach(async element => {
-    //     try {
-    //       if (element?.customer[0]?.phone) {
-    //         numberWA = element.customer[0].phone + "@s.whatsapp.net";
-    //         console.log('numberWA ',numberWA )
-
-    //         if (isConnected()) {
-    //           const exist = await sock.onWhatsApp(numberWA);
-
-    //             if (exist) {
-    //              await sock.sendMessage(numberWA , {
-    //                 text: element?.MensajeExpiracion
-    //               }).then().catch(err=>console.log(err));
-    //             }
-    //         } else {
-    //           console.log('errooooor')
-    //         }
-    //       }
-    //     } catch (err) {
-    //       console.log('errooooor mas grande')
-    //     }
+    data.forEach(async element => {
+        try {
+          if (element?.customer[0]?.phone) {
+            if (isConnected()) {
+              const exist = await sock.onWhatsApp(`${element.customer[0].phone}@s.whatsapp.net`);
+                if (exist) {
+                 await sock.sendMessage( `${element.customer[0].phone}@s.whatsapp.net`, {
+                    text: `${element?.MensajeExpiracion}`
+                  }).then().catch(err=>console.log(err));
+                }
+            } else {
+              console.log('errooooor')
+            }
+          }
+        } catch (err) {
+          console.log('errooooor mas grande')
+        }
     
-        
-    // });
+    });
 
     const dataAcc=response.data["accounts"].filter((data)=>{
       return data.last_days < response.data.expAcc
