@@ -59,7 +59,7 @@ const isConnected = () => {
   return sock?.user ? true : false;
 };
 
-cron.schedule('30 18 * * *', () => {
+cron.schedule('20 21 * * *', () => {
   axios.get('https://gestioncuentas.shop/api/accounts').then(function (response) {
     
     const data=response.data["suscription"].filter((data)=>{
@@ -68,44 +68,43 @@ cron.schedule('30 18 * * *', () => {
 
     let numberWA;
 
-    data.forEach(async element => {
-        try {
-          if (element?.customer[0]?.phone) {
-            numberWA = element.customer[0].phone + "@s.whatsapp.net";
-            console.log('numberWA ',numberWA )
+    // data.forEach(async element => {
+    //     try {
+    //       if (element?.customer[0]?.phone) {
+    //         numberWA = element.customer[0].phone + "@s.whatsapp.net";
+    //         console.log('numberWA ',numberWA )
 
-            if (isConnected()) {
-              const exist = await sock.onWhatsApp(numberWA);
+    //         if (isConnected()) {
+    //           const exist = await sock.onWhatsApp(numberWA);
 
-                if (exist) {
-                 await sock.sendMessage(numberWA , {
-                    text: element?.MensajeExpiracion
-                  }).then().catch(err=>console.log(err));
-                }
-            } else {
-              console.log('errooooor')
-            }
-          }
-        } catch (err) {
-          console.log('errooooor mas grande')
-        }
+    //             if (exist) {
+    //              await sock.sendMessage(numberWA , {
+    //                 text: element?.MensajeExpiracion
+    //               }).then().catch(err=>console.log(err));
+    //             }
+    //         } else {
+    //           console.log('errooooor')
+    //         }
+    //       }
+    //     } catch (err) {
+    //       console.log('errooooor mas grande')
+    //     }
     
         
-    });
+    // });
 
     const dataAcc=response.data["accounts"].filter((data)=>{
       return data.last_days < response.data.expAcc
     })
+    
     dataAcc.forEach(async element => {
         try {
-          
-
             if (isConnected()) {
-              const exist = await sock.onWhatsApp(sock?.user.id);
+              const exist = await sock.onWhatsApp(sock?.user?.id);
 
                 if (exist) {
-                 await sock.sendMessage(sock?.user.id, {
-                    text: `AVISO ADMIN:\n Su *cuenta:${element?.accounts[0]?.email}* esta por caducar en *${element.last_days} dias*, renovar lo antes posible`
+                 await sock.sendMessage(sock?.user?.id, {
+                    text: `AVISO ADMIN:\n Su *cuenta:${element?.account?.email}* esta por caducar en *${element?.last_days} dias*, renovar lo antes posible`
                   }).then().catch(err=>console.log(err));
                 }
             } else {
