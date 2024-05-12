@@ -59,7 +59,7 @@ const isConnected = () => {
   return sock?.user ? true : false;
 };
 
-cron.schedule('10 23 * * *', () => {
+cron.schedule('30 17 * * *', () => {
   axios.get('https://gestioncuentas.shop/api/accounts').then(function (response) {
     
     const data=response.data["suscription"].filter((data)=>{
